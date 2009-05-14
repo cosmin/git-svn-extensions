@@ -1,0 +1,33 @@
+* Description *
+
+git-svn-extensions are a set of shell scripts that make it easier to work with 
+subversion from git.
+
+* Installation *
+
+The current extensions are written as a set of bash functions. Simply add the
+following line to your .bashrc or similar to take advantage of these features
+
+ . /path/to/this/project/source.sh
+
+* Usage *
+
+- creating a subversion branch
+
+  $ git-svn-create-branch branch_name
+
+  This will create a branch in svn with that name, and check it out locally as
+  svn-branch_name
+
+- deleting a subversion branch
+
+  $ git-svn-delete-branch branch_name
+
+- removing remote branches that no longer exist in svn
+
+  $ git-svn-prune-branches # shows what would be removed
+  $ git-svn-prune-branches -f # actually removes those branches
+
+- list svn branches (excluding trunk and tags/)
+
+  $ git-svn-branches

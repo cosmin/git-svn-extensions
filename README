@@ -1,7 +1,7 @@
-* Description *
-
-git-svn-extensions are a set of shell scripts that make it easier to work with 
-subversion from git.
+Author: Cosmin Stejerean (offbytwo)
+License: MIT
+Description: git-svn-extensions are a set of shell scripts that make it easier 
+to work with subversion from git.
 
 * Installation *
 

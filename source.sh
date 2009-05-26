@@ -53,6 +53,20 @@ function git-svn-remove-branch {
     fi
 }
 
+# Remove a remote tag from the central server. Equivalent of "svn remove <tag> && svn commit".
+# Note that removing tags is not recommended.
+function git-svn-remove-tag {
+    svnremote=`git config --list | grep "svn-remote.svn.url" | cut -d '=' -f 2`
+    tags=$svnremote/`git config --list | grep tags | sed 's/.*tags=//' | sed 's/*:.*//'`
+    if [ "$2" == "-f" ]; then
+        svn rm "$tags$1" -m "Removing tag $1"
+    else
+        echo "Would remove tag $tag$1"
+        echo "To actually remove the tag, use:"
+        echo "  ${FUNCNAME[0]} $1 -f"
+    fi
+}
+
 # Create a remote svn branch from the currently tracked one, and check it out in a new local branch.
 function git-svn-create-branch {
     # Compute the location of the remote branches

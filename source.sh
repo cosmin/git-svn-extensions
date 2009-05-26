@@ -9,11 +9,11 @@ function git-svn-transplant-to {
 
 function git-svn-remove-branch {
     svnremote=`git config --list | grep "svn-remote.svn.url" | cut -d '=' -f 2`
-    branches=`git config --list | grep branches | sed 's/.*branches=//' | sed 's/*:.*//'`
+    branches=$svnremote/`git config --list | grep branches | sed 's/.*branches=//' | sed 's/*:.*//'`
     if [ "$2" == "-f" ]; then
-        svn rm "$svnremote/$branches$1" -m "Removing branch $1"
+        svn rm "$branches$1" -m "Removing branch $1"
     else
-        echo "Would remove branch $svnremote/$branches$1"
+        echo "Would remove branch $branches$1"
         echo "To actually remove the branch, use:"
         echo "  ${FUNCNAME[0]} $1 -f"
     fi
@@ -21,9 +21,9 @@ function git-svn-remove-branch {
 
 function git-svn-create-branch {
     svnremote=`git config --list | grep "svn-remote.svn.url" | cut -d '=' -f 2`
-    branches=`git config --list | grep branches | sed 's/.*branches=//' | sed 's/*:.*//'`
+    branches=$svnremote/`git config --list | grep branches | sed 's/.*branches=//' | sed 's/*:.*//'`
     current=`git svn info --url`
-    destination=$svnremote/$branches$1
+    destination=$branches$1
     if [ "$2" == "-n" ]; then
         echo " ** Dry run only ** "
         echo "svn cp $current $destination -m \"creating branch\""
@@ -46,8 +46,8 @@ function git-svn-branches {
 
 function git-svn-prune-branches {
     svnremote=`git config --list | grep "svn-remote.svn.url" | cut -d '=' -f 2`
-    branches=`git config --list | grep branches | sed 's/.*branches=//' | sed 's/*:.*//'`
-    remote_branches=" `svn ls $svnremote/$branches | sed 's/\/$//'` "
+    branches=$svnremote/`git config --list | grep branches | sed 's/.*branches=//' | sed 's/*:.*//'`
+    remote_branches=" `svn ls $branches | sed 's/\/$//'` "
     local_branches=`git-svn-branches`
 
     for branch in $local_branches; do

@@ -4,6 +4,33 @@ function git-current-branch {
     echo "`git branch | grep '*' | sed 's/* //'`"
 }
 
+# Prints the name of the remote branch (subversion trunk, branch or tag) tracked by the current local branch.
+function git-current-remote-branch {
+    # This is the current remote URL corresponding to the local branch
+    current_url=`git svn info --url`
+    # Obtain the URL parts corresponding to the base repository address, and the prefixes for the trunk, the branches, and the tags
+    base_url=`git config --list | grep "svn-remote.svn.url" | cut -d '=' -f 2`
+    trunk_url=$base_url/`git config --list | grep "svn-remote.svn.fetch" | cut -d '=' -f 2 | sed 's/:.*//'`
+    branches_url=$base_url/`git config --list | grep branches | sed 's/.*branches=//' | sed 's/*:.*//'`
+    tags_url=$base_url/`git config --list | grep tags | sed 's/.*tags=//' | sed 's/*:.*//'`
+    # Check if the current URL matches the trunk URL
+    if [ $trunk_url == $current_url ]; then
+        echo "You are on trunk"
+    # ...or has the branches URL as a prefix
+    elif [ `echo $current_url | grep $branches_url` ]; then
+        # Escape / in order to use the URL as a regular expression in sed
+        escaped_prefix=`echo $branches_url | sed 's/\//\\\\\//g'`
+        echo You are on branch `echo $current_url | sed "s/$escaped_prefix//"`
+    # ...or has the tags URL as a prefix
+    elif [ `echo $current_url | grep $tags_url` ]; then
+        # Escape / in order to use the URL as a regular expression in sed
+        escaped_prefix=`echo $tags_url | sed 's/\//\\\\\//g'`
+        echo You are on tag `echo $current_url | sed "s/$escaped_prefix//"`
+    else
+        echo "You are on an unknown remote branch"
+    fi
+}
+
 # Merge the changes from the current branch into another branch (either an existing local branch or a remote branch) and
 # commit them to the remote server. After that, switch back to the original branch.
 function git-svn-transplant-to {

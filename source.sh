@@ -107,6 +107,39 @@ function git-svn-create-branch {
     echo "Created branch $1 at $destination (locally svn-$1)"
 }
 
+# Create a remote svn tag from the currently tracked branch/trunk.
+function git-svn-create-tag {
+    if [ "$2" == "-n" ]; then
+        echo " ** Dry run only ** "
+    fi
+    # Determine the name of the current remote branch (or trunk)
+    source=`git-current-remote-branch -s`
+    # Determine if there are local changes that are not pushed to the central server
+    if ((git svn dcommit -n > /dev/null 2> /dev/null) && [[ "`git svn dcommit -n 2> /dev/null | grep diff-tree | wc -l`" == "0" ]]); then
+        echo "Using $source as the source branch to tag"
+    else
+        echo "Local branch contains changes, please push to the svn repository or checkout a clean branch."
+        return 1
+    fi
+    # Compute the location of the remote tags
+    svnremote=`git config --list | grep "svn-remote.svn.url" | cut -d '=' -f 2`
+    tags=$svnremote/`git config --list | grep tags | sed 's/.*tags=//' | sed 's/*:.*//'`
+    destination=$tags$1
+    # Determine the remote URL of the current branch
+    current=`git svn info --url`
+    if [ "$2" == "-n" ]; then
+        echo "svn cp $current $destination -m \"creating tag $1 from $source\""
+        echo "git svn fetch"
+        echo "Would create tag $1 from $source at $destination"
+    else
+        # Create the tag remotely
+        svn cp $current $destination -m "creating tag $1 from $source"
+        # Update remote tag names
+        git svn fetch
+        echo "Created tag $1 from $source at $destination"
+    fi
+}
+
 # List the remote branches, as known locally by git.
 function git-svn-branches {
     # List all known remote branches and filter out the trunk (named trunk) and the tags (which contain a / in their name)

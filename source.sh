@@ -1,5 +1,5 @@
 function git-current-branch {
-    echo "`git branch | grep "*" | awk '{print $2}'`"
+    echo "`git branch | grep '*' | sed 's/* //'`"
 }
 
 function git-svn-transplant-to {

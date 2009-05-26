@@ -39,7 +39,7 @@ function git-svn-create-branch {
 }
 
 function git-svn-branches {
-    git branch -r | cut -d ' ' -f 3 | grep -v '^trunk$' | grep -v '/'
+    git branch -r | cut -d ' ' -f 3 | grep -E -v '^trunk(@.*)?$' | grep -v '/'
 }
 
 function git-svn-prune-branches {

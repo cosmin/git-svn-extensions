@@ -20,7 +20,7 @@ function git-svn-remove-branch {
 function git-svn-create-branch {
     svnremote=`git config --list | grep "svn-remote.svn.url" | cut -d '=' -f 2`
     branches=`git config --list | grep branches | sed 's/.*branches=//' | sed 's/*:.*//'`
-    current=`git svn info | grep "URL: " | cut -d ' ' -f 2`
+    current=`git svn info --url`
     destination=$svnremote/$branches$1
     if [ "$2" == "-n" ]; then
         echo " ** Dry run only ** "

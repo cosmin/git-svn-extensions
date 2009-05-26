@@ -14,6 +14,8 @@ function git-svn-remove-branch {
         svn rm "$svnremote/$branches$1" -m "Removing branch $1"
     else
         echo "Would remove branch $svnremote/$branches$1"
+        echo "To actually remove the branch, use:"
+        echo "  ${FUNCNAME[0]} $1 -f"
     fi
 }
 
@@ -63,4 +65,9 @@ function git-svn-prune-branches {
             fi
         fi
     done
+
+    if [[ "$1" != "-f" ]]; then
+        echo "To actually prune branches, use:"
+        echo "  ${FUNCNAME[0]} -f"
+    fi
 }

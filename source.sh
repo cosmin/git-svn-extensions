@@ -97,6 +97,12 @@ function git-svn-branches {
     git branch -r | cut -d ' ' -f 3 | grep -E -v '^trunk(@.*)?$' | grep -v '/'
 }
 
+# List the remote tags, as known locally by git.
+function git-svn-tags {
+    # List all known remote branches and filter only the tags, which contain a / in their name
+    git branch -r | cut -d ' ' -f 3 | grep '/' | cut -d '/' -f2
+}
+
 # Remove branches which no longer exist remotely from the local git references.
 function git-svn-prune-branches {
     # List the real remote and locally known remote branches

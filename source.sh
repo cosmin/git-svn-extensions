@@ -136,3 +136,37 @@ function git-svn-prune-branches {
         echo "  ${FUNCNAME[0]} -f"
     fi
 }
+
+# Remove tags which no longer exist remotely from the local git references.
+function git-svn-prune-tags {
+    # List the real remote and locally known remote tags
+    svnremote=`git config --list | grep "svn-remote.svn.url" | cut -d '=' -f 2`
+    tags=`git config --list | grep tags | sed 's/.*tags=//' | sed 's/*:.*//'`
+    remote_tags=" `svn ls $svnremote/$tags | sed 's/\/$//'` "
+    local_tags=`git-svn-tags`
+
+    # Check each locally known remote tag
+    for tag in $local_tags; do
+        found=0
+        # Search it in the list of real remote tags
+        for rtag in $remote_tags; do
+            if [[ $tag == $rtag ]]; then
+                  found=1
+            fi
+        done
+        # If not found, remove it
+        if [[ $found == 0 ]]; then
+            if [[ "$1" == "-f" ]]; then
+                git branch -r -D tags/$tag
+            else
+                echo "Would remove tags/$tag"
+            fi
+        fi
+    done
+
+    # If this was only a dry run, indicate how to actually prune
+    if [[ "$1" != "-f" ]]; then
+        echo "To actually prune tags, use:"
+        echo "  ${FUNCNAME[0]} -f"
+    fi
+}

@@ -1,4 +1,4 @@
-Author: Cosmin Stejerean (offbytwo)
+Author: Cosmin Stejerean (offbytwo), Sergiu Dumitriu (sdumitriu)
 License: MIT
 Description: git-svn-extensions are a set of shell scripts that make it easier 
 to work with subversion from git.
@@ -6,28 +6,52 @@ to work with subversion from git.
 * Installation *
 
 The current extensions are written as a set of bash functions. Simply add the
-following line to your .bashrc or similar to take advantage of these features
+following line to your .bashrc, .bash_profile or similar to take advantage of
+these features:
 
- . /path/to/this/project/source.sh
+. /path/to/this/project/source.sh
 
 * Usage *
 
-- creating a subversion branch
+- creating a subversion branch or tag
 
   $ git-svn-create-branch branch_name
+  $ git-svn-create-tag tag_name
 
-  This will create a branch in svn with that name, and check it out locally as
+  This will create a branch in svn with that name, starting from the currently
+  tracked remote (trunk or a svn branch), and check it out locally as
   svn-branch_name
 
-- deleting a subversion branch
+  The tag creation does the same, with the differences that it aborts if the
+  local branch contains unmerged changes, and at the end it does not checkout
+  the remote tag into a new local branch, since tags are not normally edited.
+
+- deleting a subversion branch or tag
 
   $ git-svn-delete-branch branch_name
+  $ git-svn-delete-tag tag_name
 
-- removing remote branches that no longer exist in svn
+  By default this only shows what would be deleted (dry run). Append -f to
+  actually delete.
 
-  $ git-svn-prune-branches # shows what would be removed
-  $ git-svn-prune-branches -f # actually removes those branches
+- removing references to remote branches and tags that no longer exist in svn
 
-- list svn branches (excluding trunk and tags/)
+  $ git-svn-prune-branches
+  $ git-svn-prune-tags
+
+  By default this only shows what would be deleted (dry run). Append -f to
+  actually delete.
+
+- list svn branches or tags (excluding trunk)
 
   $ git-svn-branches
+  $ git-svn-tags
+
+- show the current local and remote branch names
+
+  $ git-current-branch
+  $ git-current-remote-branch
+
+  The latter correctly detects if the local branch tracks the trunk, a branch,
+  or a tag. Append -s to only print the name of the branch/tag, or "trunk"
+  instead of the user-friendly message.

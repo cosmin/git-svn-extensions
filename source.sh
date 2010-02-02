@@ -170,3 +170,7 @@ function git-svn-prune-tags {
         echo "  ${FUNCNAME[0]} -f"
     fi
 }
+
+function git-svn-up {
+    git stash && git svn rebase && git stash pop
+}

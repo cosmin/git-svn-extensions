@@ -15,19 +15,35 @@ function git-current-remote-branch {
     tags_url=$base_url/`git config --list | grep tags | sed 's/.*tags=//' | sed 's/*:.*//'`
     # Check if the current URL matches the trunk URL
     if [ $trunk_url == $current_url ]; then
-        echo "You are on trunk"
+        if [ "$1" == "-s" ]; then
+            echo "trunk"
+        else
+            echo "You are on trunk"
+        fi
     # ...or has the branches URL as a prefix
     elif [ `echo $current_url | grep $branches_url` ]; then
         # Escape / in order to use the URL as a regular expression in sed
         escaped_prefix=`echo $branches_url | sed 's/\//\\\\\//g'`
-        echo You are on branch `echo $current_url | sed "s/$escaped_prefix//"`
+        if [ "$1" == "-s" ]; then
+            echo `echo $current_url | sed "s/$escaped_prefix//"`
+        else
+            echo You are on branch `echo $current_url | sed "s/$escaped_prefix//"`
+        fi
     # ...or has the tags URL as a prefix
     elif [ `echo $current_url | grep $tags_url` ]; then
         # Escape / in order to use the URL as a regular expression in sed
         escaped_prefix=`echo $tags_url | sed 's/\//\\\\\//g'`
-        echo You are on tag `echo $current_url | sed "s/$escaped_prefix//"`
+        if [ "$1" == "-s" ]; then
+            echo `echo $current_url | sed "s/$escaped_prefix//"`
+        else
+            echo You are on tag `echo $current_url | sed "s/$escaped_prefix//"`
+        fi
     else
-        echo "You are on an unknown remote branch"
+        if [ "$1" == "-s" ]; then
+            echo "unknown"
+        else
+            echo "You are on an unknown remote branch"
+        fi
     fi
 }
 
@@ -89,6 +105,39 @@ function git-svn-create-branch {
     fi
 
     echo "Created branch $1 at $destination (locally svn-$1)"
+}
+
+# Create a remote svn tag from the currently tracked branch/trunk.
+function git-svn-create-tag {
+    if [ "$2" == "-n" ]; then
+        echo " ** Dry run only ** "
+    fi
+    # Determine the name of the current remote branch (or trunk)
+    source=`git-current-remote-branch -s`
+    # Determine if there are local changes that are not pushed to the central server
+    if ((git svn dcommit -n > /dev/null 2> /dev/null) && [[ "`git svn dcommit -n 2> /dev/null | grep diff-tree | wc -l`" == "0" ]]); then
+        echo "Using $source as the source branch to tag"
+    else
+        echo "Local branch contains changes, please push to the svn repository or checkout a clean branch."
+        return 1
+    fi
+    # Compute the location of the remote tags
+    svnremote=`git config --list | grep "svn-remote.svn.url" | cut -d '=' -f 2`
+    tags=$svnremote/`git config --list | grep tags | sed 's/.*tags=//' | sed 's/*:.*//'`
+    destination=$tags$1
+    # Determine the remote URL of the current branch
+    current=`git svn info --url`
+    if [ "$2" == "-n" ]; then
+        echo "svn cp $current $destination -m \"creating tag $1 from $source\""
+        echo "git svn fetch"
+        echo "Would create tag $1 from $source at $destination"
+    else
+        # Create the tag remotely
+        svn cp $current $destination -m "creating tag $1 from $source"
+        # Update remote tag names
+        git svn fetch
+        echo "Created tag $1 from $source at $destination"
+    fi
 }
 
 # List the remote branches, as known locally by git.

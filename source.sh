@@ -223,3 +223,18 @@ function git-svn-prune-tags {
 function git-svn-up {
     git stash && git svn rebase && git stash pop
 }
+
+function git-svn-convert-tags {
+  #!/bin/sh
+  #
+  # git-svn-convert-tags
+  # Convert Subversion "tags" into Git tags
+  for tag in `git branch -r | grep "  tags/" | sed 's/  tags\///'`; do
+    GIT_COMMITTER_DATE="$(git log -1 --pretty=format:"%ad" tags/"$tag")" 
+    GIT_COMMITTER_EMAIL="$(git log -1 --pretty=format:"%ce" tags/"$tag")"
+    GIT_COMMITTER_NAME="$(git log -1 --pretty=format:"%cn" tags/"$tag")"
+    GIT_MESSAGE="$(git log -1 --pretty=format:%s%n%b tags/"$tag")"
+    git tag -m "$GIT_MESSAGE" $tag refs/remotes/tags/$tag
+    git branch -rd "tags/""$tag"
+  done
+}

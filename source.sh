@@ -243,6 +243,18 @@ function git-svn-prune-tags {
     fi
 }
 
+function git-svn-prune-remotes {
+    git-svn-prune-trunk ${1:--q}
+    git-svn-prune-branches ${1:--q}
+    git-svn-prune-tags ${1:--q}
+
+    # If this was only a dry run, indicate how to actually prune
+    if [[ "$1" != "-f" ]]; then
+        echo "To actually prune dead remotes, use:"
+        echo "  ${FUNCNAME[0]} -f"
+    fi
+}
+
 function git-svn-up {
     git stash && git svn rebase && git stash pop
 }

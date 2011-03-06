@@ -152,6 +152,29 @@ function git-svn-tags {
     git branch -r | cut -d ' ' -f 3 | grep '/' | cut -d '/' -f2
 }
 
+# Remove from the git references fake trunk remotes pointing to different versions.
+# These are created when the codebase was moved on SVN from one location to the other.
+# Their names look like "trunk@35107"
+function git-svn-prune-trunk {
+    # List the versioned trunk remotes
+    to_remove=`git branch -r | grep --color=never 'trunk@'`
+
+    # Check each locally known remote branch
+    for branch in $to_remove; do
+        if [[ "$1" == "-f" ]]; then
+            git branch -r -D $branch
+        else
+            echo "Would remove $branch"
+        fi
+    done
+
+    # If this was only a dry run, indicate how to actually prune
+    if [[ "$1" != "-f" && "$1" != "-q" ]]; then
+        echo "To actually prune dead versions, use:"
+        echo "  ${FUNCNAME[0]} -f"
+    fi
+}
+
 # Remove branches which no longer exist remotely from the local git references.
 function git-svn-prune-branches {
     # List the real remote and locally known remote branches

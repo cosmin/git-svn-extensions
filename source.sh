@@ -281,3 +281,83 @@ function git-svn-convert-branches {
         git branch -rD "${branch}"
     done
 }
+
+# Remove tags that match the provided regular expression (Perl syntax).
+# The first parameter is mandatory and must be a regular expression of tag names to remove.
+# Only do a dry run, printing what would be removed, if the second parameter is missing or is not "-f"
+function git-svn-filter-tags {
+    svn_tags=`git-svn-tags`
+    git_tags=`git tag`
+
+    # Check each remote tag
+    for tag in $svn_tags ; do
+        found=`echo $tag | grep -P $1`
+        # If it matches, remove it
+        if [[ -n $found ]]; then
+            if [[ "$2" == "-f" ]]; then
+                git branch -D -r tags/$tag
+            else
+                echo "Would remove remote tags/$tag"
+            fi
+        fi
+    done
+
+    # Check each git tag
+    for tag in $git_tags ; do
+        found=`echo $tag | grep -P $1`
+        # If it matches, remove it
+        if [[ -n $found ]]; then
+            if [[ "$2" == "-f" ]]; then
+                git tag -d $tag
+            else
+                echo "Would remove tag $tag"
+            fi
+        fi
+    done
+
+    # If this was only a dry run, indicate how to actually prune
+    if [[ "$2" != "-f" && "$2" != "-q" ]]; then
+        echo "To actually remove tags, use:"
+        echo "  ${FUNCNAME[0]} $1 -f"
+    fi
+}
+
+# Remove branches that match the provided regular expression (Perl syntax).
+# The first parameter is mandatory and must be a regular expression of branch names to remove.
+# Only do a dry run, printing what would be removed, if the second parameter is missing or is not "-f"
+function git-svn-filter-branches {
+    svn_branches=`git-svn-branches`
+    git_branches=`git branch`
+
+    # Check each remote branch
+    for branch in $svn_branches ; do
+        found=`echo $branch | grep -P $1`
+        # If it matches, remove it
+        if [[ -n $found ]]; then
+            if [[ "$2" == "-f" ]]; then
+                git branch -D -r $branch
+            else
+                echo "Would remove remote branch $branch"
+            fi
+        fi
+    done
+
+    # Check each git branch
+    for branch in $git_branches ; do
+        found=`echo $branch | grep -P $1`
+        # If it matches, remove it
+        if [[ -n $found ]]; then
+            if [[ "$2" == "-f" ]]; then
+                git branch -D $branch
+            else
+                echo "Would remove branch $branch"
+            fi
+        fi
+    done
+
+    # If this was only a dry run, indicate how to actually prune
+    if [[ "$2" != "-f" && "$2" != "-q" ]]; then
+        echo "To actually remove branches, use:"
+        echo "  ${FUNCNAME[0]} $1 -f"
+    fi
+}

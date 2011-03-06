@@ -273,3 +273,11 @@ function git-svn-convert-tags {
     git branch -rd "tags/""$tag"
   done
 }
+
+# Create a git branch for each remote SVN branch
+function git-svn-convert-branches {
+    for branch in `git-svn-branches`; do
+        git branch "${branch}" "remotes/${branch}"
+        git branch -rD "${branch}"
+    done
+}

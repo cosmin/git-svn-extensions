@@ -180,7 +180,7 @@ function git-svn-prune-branches {
     done
 
     # If this was only a dry run, indicate how to actually prune
-    if [[ "$1" != "-f" ]]; then
+    if [[ "$1" != "-f" && "$1" != "-q" ]]; then
         echo "To actually prune branches, use:"
         echo "  ${FUNCNAME[0]} -f"
     fi
@@ -214,7 +214,7 @@ function git-svn-prune-tags {
     done
 
     # If this was only a dry run, indicate how to actually prune
-    if [[ "$1" != "-f" ]]; then
+    if [[ "$1" != "-f" && "$1" != "-q" ]]; then
         echo "To actually prune tags, use:"
         echo "  ${FUNCNAME[0]} -f"
     fi

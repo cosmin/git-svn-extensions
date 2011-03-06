@@ -54,7 +54,7 @@ function git-svn-transplant-to {
     git checkout $1 && git merge $current_branch && git svn dcommit && git checkout $current_branch
 }
 
-# Remove a remote branch from the central server. Equivalent of "svn remove <banch> && svn commit".
+# Remove a remote branch from the central server. Equivalent of "svn remove <branch> && svn commit".
 function git-svn-remove-branch {
     # Compute the location of the remote branches
     svnremote=`git config --list | grep "svn-remote.svn.url" | cut -d '=' -f 2`

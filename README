@@ -55,3 +55,13 @@ these features:
   The latter correctly detects if the local branch tracks the trunk, a branch,
   or a tag. Append -s to only print the name of the branch/tag, or "trunk"
   instead of the user-friendly message.
+
+- full conversion of a subversion project into a (local) git repository
+
+  $ git-svn-migrate
+
+  This function is interactive, prompting for the needed information. The new
+  git repository does not maintain the connection to the SVN one. This is useful
+  for fully migrating a project from subversion to git, a one-time process that
+  preserves the entire history of the project (as much as git-svn can obtain,
+  anyway), including existing tags and branches.

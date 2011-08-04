@@ -361,3 +361,118 @@ function git-svn-filter-branches {
         echo "  ${FUNCNAME[0]} $1 -f"
     fi
 }
+
+# Fully convert a SVN repository into a clean git repository.
+# The connection to the SVN repository is no longer available after the conversion ends.
+# Interactive, the user will be promted for the URL of the SVN repository,
+# whether or not to process a standard layout repository with trunk, tags and branches,
+# and which authors file to use for migrating commit authors.
+# Uses escape sequences for formatting the output.
+function git-svn-migrate {
+    repo=""
+    svncontent=""
+    while [[ -z $repo || -z $svncontent ]]
+    do
+        echo -e "Repository to convert:\033[0;32m"
+        read -e -p "[URL] > " repo
+        echo -n -e "\033[0m"
+        echo "Analyzing repository..."
+        svncontent=`svn ls --non-interactive $repo 2>/dev/null`
+        if [[ -z $repo ]]
+        then
+            echo -e "\033[1;31mPlease specify a valid URL.\033[0m"
+            echo
+        elif [[ -z $svncontent ]]
+        then
+            echo -e "\033[1;31mRepository \033[4m$repo\033[0;1;31m does not exist.\033[0m"
+            echo
+        fi
+    done
+
+    # Check if it has branches and tags
+    stdlayout=n
+    if [[ `echo $svncontent | grep trunk/` ]]
+    then
+        stdlayout=y
+        echo -e "Standard layout detected. Process tags and branches?\033[0;32m"
+        read -e -p "[Y|n] > " stdlayout
+        echo -n -e "\033[0m"
+    fi
+
+    authors="help"
+    while [[ -n `echo help | grep -i "^$authors"` && -n $authors ]]
+    do
+        echo
+        echo -e "Authors file to use: (leave empty if no authors file should be used)\033[0;32m"
+        read -e -p "[filename|help] > " authors
+        echo -n -e "\033[0m"
+        if [[ -n `echo help | grep -i "^$authors"` && -n $authors ]]
+        then
+            echo
+            echo "The authors file consists of a list of user name mappings, in the format:"
+            echo "svn-username = Full Name <email@addr.es>"
+            echo "For example:"
+            echo
+            echo "jdoe = John Doe <john.doe@company.net>"
+            echo "gfawkes = Guy Fawkes <guy.fawkes@company.net>"
+            echo
+            echo -e "\033[1;31mWarning! The migration will fail if the provided authors file doesn't contain a valid entry for one of the authors found in the SVN repository.\033[0m"
+        fi
+    done
+
+    summary="Migrating \033[4;1;37m$repo\033[0m"
+    cmd="git svn clone"
+    if [[ $stdlayout != 'n' ]]
+    then
+        summary="$summary with tags and branches"
+        cmd="$cmd --stdlayout"
+    fi
+    if [[ -n $authors ]]
+    then
+        summary="$summary, using \033[1;37m$authors\033[0m to convert commit authors"
+        cmd="$cmd --authors-file=$authors"
+    fi
+    cmd="$cmd $repo ."
+
+    echo
+    echo -e $summary
+    echo -e "\033[1;31mWarning! The new git repository will be created in the current directory.\033[0m"
+    echo -e "Proceed?\033[0;32m"
+    read -e -p "[Y|n] > " go
+    echo -n -e "\033[0m"
+    if [[ $go == "n" ]]
+    then
+        echo "Aborting"
+        return
+    fi
+
+    # Let's go!
+    echo
+    echo -e "\033[1;32mStep 1/5:\033[0;32m Fetching commit data\033[0m"
+    $cmd || { echo -e "\033[1;31mFailed.\033[0m" ; return 1 ; }
+
+    echo
+    echo -e "\033[1;32mStep 2/5:\033[0;32m Cleaning up fake branches\033[0m"
+    git-svn-prune-remotes -f
+    if [[ $stdlayout != "n" ]]
+    then
+        git branch -d -r trunk
+    fi
+
+    echo
+    echo -e "\033[1;32mStep 3/5:\033[0;32m Converting tags and branches\033[0m"
+    git-svn-convert-tags
+    git-svn-convert-branches
+
+    echo
+    echo -e "\033[1;32mStep 4/5:\033[0;32m Removing temporary data\033[0m"
+    rm -rf .git/svn
+    git config --remove-section svn-remote.svn
+
+    echo
+    echo -e "\033[1;32mStep 5/5:\033[0;32m Garbage collection\033[0m"
+    git gc --aggressive --prune
+
+    echo
+    echo -e "\033[1;32mAll done!\033[0m"
+}

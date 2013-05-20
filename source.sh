@@ -179,7 +179,7 @@ function git-svn-prune-trunk {
 function git-svn-prune-branches {
     # List the real remote and locally known remote branches
     svnremote=`git config --list | grep "svn-remote.svn.url" | cut -d '=' -f 2`
-    branches=$svnremote/`git config --list | grep branches | sed 's/.*branches=//' | sed 's/*:.*//'`
+    branches=$svnremote/`git config --list | grep branches | grep -v svn-remote.svn.fetch | sed 's/.*branches=//' | sed 's/*:.*//'`
     remote_branches=" `svn ls $branches | sed 's/\/$//'` "
     local_branches=`git-svn-branches`
 

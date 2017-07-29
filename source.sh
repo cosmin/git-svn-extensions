@@ -364,7 +364,7 @@ function git-svn-filter-branches {
 
 # Fully convert a SVN repository into a clean git repository.
 # The connection to the SVN repository is no longer available after the conversion ends.
-# Interactive, the user will be promted for the URL of the SVN repository,
+# Interactive, the user will be prompted for the URL of the SVN repository,
 # whether or not to process a standard layout repository with trunk, tags and branches,
 # and which authors file to use for migrating commit authors.
 # Uses escape sequences for formatting the output.
